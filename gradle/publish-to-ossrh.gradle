@@ -1,0 +1,104 @@
+import com.vanniktech.maven.publish.SonatypeHost
+
+plugins {
+    id 'com.vanniktech.maven.publish' version "0.30.0"
+    id 'signing' // GPG 서명을 위한 플러그인
+}
+
+group = "io.github.karatuss"
+version = "1.0.0"
+
+mavenPublishing {
+    // Choose the central server
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+
+    // Configuring what to publish
+    coordinates(group, project.name, version)
+
+    pom {
+        name = project.name
+        description = project.description
+        inceptionYear = "2025"
+        url = project.url
+        licenses {
+            license {
+                name = "MIT License"
+                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            }
+        }
+        developers {
+            developer {
+                id = "username"
+                name = "User Name"
+                url = "https://github.com/username/"
+            }
+        }
+        scm {
+            url = "https://github.com/username/mylibrary/"
+            connection = "scm:git:git://github.com/username/mylibrary.git"
+            developerConnection = "scm:git:ssh://git@github.com/username/mylibrary.git"
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            pom {
+                name = project.name
+                description = project.description
+                url = project.url
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://raw.githubusercontent.com/paulschwarz/spring-dotenv/master/LICENSE'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'paulschwarz'
+                        name = 'Paul Schwarz'
+                        email = 'paul@paulschwarz.me'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/paulschwarz/spring-dotenv.git'
+                    developerConnection = 'scm:git:git@github.com:paulschwarz/spring-dotenv.git'
+                    url = 'https://github.com/paulschwarz/spring-dotenv'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name 'OSSRH'
+            credentials {
+                username prop('ossrh.username', 'OSSRH_USERNAME')
+                password prop('ossrh.password', 'OSSRH_PASSWORD')
+            }
+            def repoBaseUrl = 'https://oss.sonatype.org'
+            def releasesRepoUrl = "$repoBaseUrl/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "$repoBaseUrl/content/repositories/snapshots/"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+        }
+    }
+}
+
+signing {
+    def signingKey = prop('signing.key', 'SIGNING_KEY')
+    def signingPassword = prop('signing.signingPassword', 'SIGNING_PASSWORD')
+
+    if (signingKey) {
+        signingKey = signingKey.replaceAll('\\\\n', '\n')
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign publishing.publications.mavenJava
+    }
+}
+
+javadoc {
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}

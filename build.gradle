@@ -1,0 +1,21 @@
+plugins {
+    id 'net.ltgt.errorprone' version '3.0.1' apply false
+}
+
+def prop(propKey, envKey) {
+    return project.hasProperty(propKey) ? project.property(propKey) : System.getenv(envKey)
+}
+
+def releaseVersion = prop('release.version', 'RELEASE_VERSION')
+if (!releaseVersion) {
+    throw new GradleException('You must specify "release.version" or "RELEASE_VERSION"')
+}
+
+subprojects {
+    group = 'me.karatuss'
+    version = releaseVersion
+
+    repositories {
+        mavenCentral()
+    }
+}
